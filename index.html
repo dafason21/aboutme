@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dafason – Web Developer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080b0f;
+      --surface: #0f1318;
+      --card: #141920;
+      --border: #1e2730;
+      --accent: #00e5a0;
+      --accent2: #0099ff;
+      --text: #e8edf2;
+      --muted: #6b7a8d;
+      --mono: 'Space Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── CURSOR DOT ── */
+    #cursor {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s, width 0.2s, height 0.2s, opacity 0.2s;
+      mix-blend-mode: screen;
+    }
+    #cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease, width 0.25s, height 0.25s, opacity 0.3s;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 4rem;
+      background: rgba(8,11,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      color: var(--accent);
+    }
+    .nav-links { display: flex; gap: 2.5rem; }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 0 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg-circle {
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,229,160,0.07) 0%, transparent 70%);
+      top: 50%; right: -100px;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .hero-bg-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.25;
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse 70% 80% at 50% 50%, black, transparent);
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 700px;
+    }
+    .hero-tag {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.2s forwards;
+    }
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 10vw, 8rem);
+      line-height: 0.9;
+      letter-spacing: 4px;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeUp 0.7s 0.4s forwards;
+    }
+    h1 span {
+      color: var(--accent);
+      display: block;
+    }
+    .hero-sub {
+      margin-top: 1.8rem;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 480px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.6s forwards;
+    }
+    .hero-cta {
+      margin-top: 2.5rem;
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.8s forwards;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.85rem 2rem;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background: #00ffb3;
+      transform: translateY(-2px);
+      box-shadow: 0 0 28px rgba(0,229,160,0.35);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: center; gap: 0;
+      overflow: hidden;
+    }
+    .stat-item {
+      flex: 1; max-width: 220px;
+      padding: 2rem;
+      text-align: center;
+      border-right: 1px solid var(--border);
+      opacity: 0;
+      animation: fadeUp 0.5s forwards;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-item:nth-child(1) { animation-delay: 0.1s; }
+    .stat-item:nth-child(2) { animation-delay: 0.2s; }
+    .stat-item:nth-child(3) { animation-delay: 0.3s; }
+    .stat-item:nth-child(4) { animation-delay: 0.4s; }
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    /* ── SECTION ── */
+    section { padding: 6rem 4rem; position: relative; z-index: 1; }
+    .section-tag {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      letter-spacing: 3px;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .section-desc {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+    }
+
+    /* ── SERVICES ── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .service-card {
+      background: var(--card);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 0;
+      background: var(--accent);
+      transition: height 0.3s;
+    }
+    .service-card:hover { background: #161d24; }
+    .service-card:hover::before { height: 100%; }
+    .service-icon {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+    }
+    .service-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 2px;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .service-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .service-tag {
+      display: inline-block;
+      margin-top: 1rem;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      letter-spacing: 1px;
+      border-radius: 2px;
+    }
+
+    /* ── ABOUT ── */
+    #about { background: var(--surface); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .about-img-wrap {
+      position: relative;
+    }
+    .about-img-placeholder {
+      width: 100%;
+      aspect-ratio: 4/5;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .about-img-placeholder::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(transparent, rgba(0,229,160,0.05));
+    }
+    .avatar-icon {
+      font-size: 5rem;
+      opacity: 0.15;
+    }
+    .about-corner {
+      position: absolute;
+      width: 100%; height: 100%;
+      top: 12px; left: 12px;
+      border: 1px solid var(--accent);
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .about-badge {
+      position: absolute; bottom: -16px; right: -16px;
+      background: var(--accent);
+      color: #000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      padding: 0.8rem 1.2rem;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .about-text p {
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .about-text strong { color: var(--text); }
+    .skills-list {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .skill-pill {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      padding: 0.35rem 0.8rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      letter-spacing: 1px;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .skill-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── CONTACT ── */
+    #contact { text-align: center; }
+    .contact-box {
+      max-width: 600px; margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 3rem;
+      position: relative;
+    }
+    .contact-box::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 60px; height: 2px;
+      background: var(--accent);
+    }
+    .contact-items {
+      display: flex; flex-direction: column; gap: 1.2rem;
+      margin-top: 2rem;
+    }
+    .contact-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+    .contact-item:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+      background: #141920;
+    }
+    .contact-icon {
+      font-size: 1.2rem;
+      width: 36px; text-align: center;
+    }
+    .contact-info { text-align: left; }
+    .contact-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .contact-value {
+      font-size: 0.9rem;
+      color: var(--text);
+      margin-top: 0.2rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 4rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    footer p {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+    }
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--accent);
+      letter-spacing: 3px;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SCROLLED-IN REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero { padding: 0 1.5rem; }
+      section { padding: 4rem 1.5rem; }
+      .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      footer { padding: 1.5rem; flex-direction: column; gap: 0.8rem; text-align: center; }
+      .stats-bar { flex-wrap: wrap; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">DAFA</div>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-bg-circle"></div>
+  <div class="hero-content">
+    <p class="hero-tag">// Web Developer · Dar es Salaam, Tanzania</p>
+    <h1>DAFA<span>SON.</span></h1>
+    <p class="hero-sub">
+      IT Professional specializing in building sleek, functional websites for businesses of all sizes —
+      at prices that actually make sense.
+    </p>
+    <div class="hero-cta">
+      <a href="#contact" class="btn btn-primary">Get in Touch →</a>
+      <a href="#services" class="btn btn-ghost">View Services</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">ALL</div><div class="stat-label">Types of Websites</div></div>
+  <div class="stat-item"><div class="stat-num">💰</div><div class="stat-label">Affordable Pricing</div></div>
+  <div class="stat-item"><div class="stat-num">DSM</div><div class="stat-label">Based in Dar es Salaam</div></div>
+  <div class="stat-item"><div class="stat-num">24/7</div><div class="stat-label">Support & Delivery</div></div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <p class="section-tag reveal">// What I do</p>
+  <h2 class="section-title reveal">SERVICES</h2>
+  <p class="section-desc reveal">From landing pages to full e-commerce platforms — I build it all with clean code and great design.</p>
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <div class="service-icon">🛒</div>
+      <div class="service-name">E-Commerce Websites</div>
+      <p class="service-desc">Full-featured online stores with product listings, cart, payments & order management.</p>
+      <span class="service-tag">Multi-vendor · PHP · MySQL</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🏢</div>
+      <div class="service-name">Business Websites</div>
+      <p class="service-desc">Professional company profiles, portfolios and landing pages that convert visitors.</p>
+      <span class="service-tag">HTML · CSS · JS</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">📱</div>
+      <div class="service-name">Responsive Design</div>
+      <p class="service-desc">Every site I build looks perfect on phones, tablets and desktops — guaranteed.</p>
+      <span class="service-tag">Mobile-First</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">⚡</div>
+      <div class="service-name">Custom Web Apps</div>
+      <p class="service-desc">Booking systems, dashboards, management platforms and more — built to your specs.</p>
+      <span class="service-tag">PHP · MySQL · API</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🔧</div>
+      <div class="service-name">Maintenance & Support</div>
+      <p class="service-desc">Ongoing support, bug fixes, updates and improvements to keep your site running smooth.</p>
+      <span class="service-tag">Ongoing · Reliable</span>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🎨</div>
+      <div class="service-name">UI/UX Design</div>
+      <p class="service-desc">Beautiful interfaces that users actually enjoy using — clean, modern and intuitive.</p>
+      <span class="service-tag">User-Centered</span>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-img-wrap reveal">
+      <div class="about-img-placeholder">
+        <div class="avatar-icon">👨‍💻</div>
+        <div class="about-corner"></div>
+      </div>
+      <div class="about-badge">IT<br>PRO</div>
+    </div>
+    <div class="about-text reveal">
+      <p class="section-tag">// About me</p>
+      <h2 class="section-title">WHO IS<br>DAFASON?</h2>
+      <p>I'm <strong>Dafason</strong>, an IT professional based in <strong>Dar es Salaam, Tanzania</strong>. I design and build websites for businesses, entrepreneurs and individuals who want a strong online presence.</p>
+      <p>Whether it's a simple business page or a complex multi-vendor e-commerce platform, I bring <strong>technical skill, creativity and attention to detail</strong> to every project — all at prices that work for the Tanzanian market.</p>
+      <p>My goal is simple: help local businesses grow online.</p>
+      <div class="skills-list">
+        <span class="skill-pill">HTML/CSS</span>
+        <span class="skill-pill">JavaScript</span>
+        <span class="skill-pill">PHP</span>
+        <span class="skill-pill">MySQL</span>
+        <span class="skill-pill">Responsive Design</span>
+        <span class="skill-pill">E-Commerce</span>
+        <span class="skill-pill">UI/UX</span>
+        <span class="skill-pill">Git & GitHub</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <p class="section-tag reveal">// Let's work together</p>
+  <h2 class="section-title reveal">CONTACT ME</h2>
+  <div class="contact-box reveal">
+    <p style="color: var(--muted); font-size:0.9rem; line-height:1.7;">
+      Ready to take your business online? Reach out via phone, WhatsApp or Instagram — I respond fast.
+    </p>
+    <div class="contact-items">
+      <a class="contact-item" href="tel:+255750180184">
+        <span class="contact-icon">📞</span>
+        <div class="contact-info">
+          <div class="contact-label">Phone / WhatsApp</div>
+          <div class="contact-value">+255 686265676/750180184</div>
+          
+        </div>
+      </a>
+      <a class="contact-item" href="https://instagram.com/beinghendry" target="_blank" rel="noopener">
+        <span class="contact-icon">📸</span>
+        <div class="contact-info">
+          <div class="contact-label">Instagram</div>
+          <div class="contact-value">@beinghendry</div>
+        </div>
+      </a>
+      <a class="contact-item" href="#">
+        <span class="contact-icon">📍</span>
+        <div class="contact-info">
+          <div class="contact-label">Location</div>
+          <div class="contact-value">Dar es Salaam, Tanzania</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">DAFASON</div>
+  <p>© 2025 · Built with passion in Dar es Salaam</p>
+  <p>IT Professional · Web Developer</p>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top  = e.clientY + 'px';
+    setTimeout(() => {
+      ring.style.left = e.clientX + 'px';
+      ring.style.top  = e.clientY + 'px';
+    }, 80);
+  });
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '18px'; cursor.style.height = '18px';
+      ring.style.width = '52px'; ring.style.height = '52px';
+      ring.style.opacity = '0.65';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '10px'; cursor.style.height = '10px';
+      ring.style.width = '36px'; ring.style.height = '36px';
+      ring.style.opacity = '0.4';
+    });
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
